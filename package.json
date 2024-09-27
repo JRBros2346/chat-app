@@ -1,0 +1,22 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "description": "A Chat App",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "JRBros2346",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0",
+    "formidable": "^3.5.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.5",
+    "nodemon": "^3.1.7",
+    "standard": "^17.1.2"
+  }
+}
