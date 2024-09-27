@@ -3,14 +3,79 @@
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <link rel='stylesheet' href='static/styles.css'>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #282a36;
+      color: #f8f8f2;
+      font-family: 'Fira Code', monospace;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #44475a;
+    }
+
+    th {
+      color: #50fa7b;
+    }
+
+    td {
+      color: #f8f8f2;
+    }
+
+    input[type='text'], input[type='file'], input[type='color'] {
+      margin-right: 10px;
+      padding: 10px;
+      background-color: #44475a;
+      border: 1px solid #6272a4;
+      color: #f8f8f2;
+    }
+
+    input[type='submit'] {
+      padding: 10px 20px;
+      background-color: #6272a4;
+      border: none;
+      color: #f8f8f2;
+      cursor: pointer;
+    }
+
+    input[type='submit']:hover {
+      background-color: #50fa7b;
+    }
+
+    form {
+      margin-top: 20px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #44475a;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #282a36;
+    }
+
+    #messages img {
+      max-width: 200px;
+      max-height: 200px;
+    }
+  </style>
   <title>Chat</title>
 </head>
 <body>
   <table id='messages'>
   </table>
   <form action='#' method='post' id='message'>
-    <input type='text' name='text' id='text'/>
+    <input type='text' name='text' id='text' placeholder='Type your message'/>
+    <input type='file' name='image' id='image' accept="image/*"/>
+    <input type='color' id='color' name='color' value='#f8f8f2'/>
     <input type='submit' value='Submit'/>
   </form>
   <script>
@@ -24,7 +89,13 @@
         const message = await response.json()
         const tr = document.createElement('tr');
         tr.id = `msg${id}`
-        tr.innerHTML = `<th>${message.user}</th><td>${message.text}</td>`
+        
+        // Check if the message contains an image URL
+        if (message.image) {
+          tr.innerHTML = `<th style="color: ${message.color};">${message.user}</th><td><p style="color: ${message.color};">${message.text}</p><img src="${message.image}" alt="${message.text}"/></td>`;
+        } else {
+          tr.innerHTML = `<th style="color: ${message.color};">${message.user}</th><td><p style="color: ${message.color};">${message.text}</p></td>`;
+        }
         messages.appendChild(tr)
         console.log(`${message.user}: ${message.text}`)
       }
@@ -35,14 +106,29 @@
     const messages = document.getElementById('messages')
     document.getElementById('message').addEventListener('submit', async e => {
       e.preventDefault()
-      const text = document.getElementById('text')
+
+      const text = document.getElementById('text').value
+      const color = document.getElementById('color').value
+      const imageFile = document.getElementById('image').files[0]
       const user = localStorage.getItem('user')
-      const res =  await fetch('/new', {
+      
+      const formData = new FormData()
+      formData.append('user', user)
+      formData.append('text', text)
+      formData.append('color', color)
+
+      if (imageFile) {
+        formData.append('image', imageFile)
+      }
+
+      const res = await fetch('/new', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user, text: text.value }),
+        body: formData, // Use formData for file and text data
       })
-      text.value = ''
+      
+      // Reset form fields after submission
+      document.getElementById('text').value = ''
+      document.getElementById('image').value = ''
     })
 
     async function run() {

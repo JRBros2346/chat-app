@@ -10,6 +10,7 @@
   "author": "JRBros2346",
   "license": "ISC",
   "dependencies": {
+    "@types/formidable": "^3.4.5",
     "express": "^4.21.0",
     "formidable": "^3.5.1"
   },

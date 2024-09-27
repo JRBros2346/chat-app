@@ -1,4 +1,7 @@
 const express = require('express')
+const { formidable } = require('formidable')
+const fs = require('fs')
+const path = require('path')
 
 const app = express()
 const port = 3333
@@ -41,6 +44,7 @@ const messages = [{ user: '', text: 'Welcome to Cyber Security' }]
 const waiting = []
 
 app.use('/static', express.static('static'))
+app.use('/', express.static('uploads'))
 app.use(express.json())
 
 app.get('/', (req, res) => res.sendFile('home.html', { root: __dirname }))
@@ -55,25 +59,34 @@ app.post('/poll', (req, res) => {
 })
 
 app.post('/new', (req, res) => {
-  if (!req.body.user || !req.body.text) {
-    return res.status(400).json({ error: 'Invalid message format' })
-  }
+  const form = formidable({ multiples: true })
+  form.parse(req, (err, fields, files) => {
+    console.log(err)
+    const user = fields.user[0]
+    const color = fields.color[0]
+    const text = fields.text[0]
+    const image = files.image ? files.image[0] : undefined
+    if (!user || !color) return res.status(400).json({ error: 'Invalid message format' })
+    if (!text && !image) return res.status(400).json({ error: 'Invalid message format' })
 
-  const { user, text } = req.body
+    if (image) fs.copyFileSync(image.filepath, path.join('uploads', image.originalFilename))
 
-  console.log(`${user}: ${text}`)
+    messages.push({
+      user,
+      color,
+      text,
+      image: image ? image.originalFilename : undefined
+    })
 
-  messages.push({ user, text })
-
-  while (waiting.length > 0) {
-    const [priority, client] = waiting[0]
-    if (priority < messages.length) {
-      client.json(messages[priority])
-      popHeap(waiting)
-    } else break
-  }
-
-  res.status(201).json(req.body)
+    while (waiting.length > 0) {
+      const [priority, client] = waiting[0]
+      if (priority < messages.length) {
+        client.json(messages[priority])
+        popHeap(waiting)
+      } else break
+    }
+    res.json({ success: true })
+  })
 })
 
 app.listen(port, '0.0.0.0', () => console.log(`Server running at http://localhost:${port}`))
