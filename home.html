@@ -8,76 +8,15 @@
   <title>Chat</title>
 </head>
 <body>
-  <div id='container'>
+  <div id='messages-container'>
     <table id='messages'></table>
-    <form action='#' method='post' id='message'>
-      <input type='text' name='text' id='text' placeholder='Type your message'/>
-      <input type='file' name='image' id='image' accept='image/*'/>
-      <input type='color' id='color' name='color' value='#f8f8f2'/>
-      <input type='submit' value='Submit'/>
-    </form>
   </div>
-  <script>
-    async function poll(id) {
-      const response = await fetch('/poll', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-      if (response.ok) {
-        const message = await response.json()
-        const tr = document.createElement('tr')
-        tr.id = `msg${id}`
-        
-        // Check if the message contains an image URL
-        if (message.image) {
-          tr.innerHTML = `<th style='color: ${message.color}'>${message.user}</th><td><p style='color: ${message.color}'>${message.text}</p><img src='${message.image}' alt='${message.text}'/></td>`
-        } else {
-          tr.innerHTML = `<th style='color: ${message.color}'>${message.user}</th><td><p style='color: ${message.color}'>${message.text}</p></td>`
-        }
-        messages.appendChild(tr)
-        console.log(`${message.user}: ${message.text}`)
-      }
-    }
-
-    if (!localStorage.getItem('user')) localStorage.setItem('user', prompt('Username: ', ''))
-
-    const messages = document.getElementById('messages')
-    document.getElementById('message').addEventListener('submit', async e => {
-      e.preventDefault()
-
-      const text = document.getElementById('text').value
-      const color = document.getElementById('color').value
-      const imageFile = document.getElementById('image').files[0]
-      const user = localStorage.getItem('user')
-      
-      const formData = new FormData()
-      formData.append('user', user)
-      formData.append('text', text)
-      formData.append('color', color)
-
-      if (imageFile) {
-        formData.append('image', imageFile)
-      }
-
-      const res = await fetch('/new', {
-        method: 'POST',
-        body: formData, // Use formData for file and text data
-      })
-      
-      // Reset form fields after submission
-      document.getElementById('text').value = ''
-      document.getElementById('image').value = ''
-    })
-
-    async function run() {
-      let i = 0
-      while (true) {
-        await poll(i)
-        ++i
-      }
-    }
-    run()
-  </script>
+  <form action='#' method='post' id='message'>
+    <input type='text' name='text' id='text' placeholder='Type your message' autocomplete="off"/>
+    <label for='image' id='image-label'>Upload Image</label>
+    <input type='file' name='image' id='image' accept='image/*' />
+    <input type='submit' value='Submit'/>
+  </form>
+  <script src="static/script.js"></script>
 </body>
 </html>

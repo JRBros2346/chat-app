@@ -2,9 +2,11 @@ const express = require('express')
 const { formidable } = require('formidable')
 const fs = require('fs')
 const path = require('path')
+const database = require('./db')
 
 const app = express()
 const port = 3333
+const host = '0.0.0.0'
 
 function pushHeap (heap, value) {
   heap.push(value)
@@ -40,7 +42,6 @@ function popHeap (heap) {
   return root
 }
 
-const messages = [{ user: '', text: 'Welcome to Cyber Security' }]
 const waiting = []
 
 app.use('/static', express.static('static'))
@@ -49,34 +50,49 @@ app.use(express.json())
 
 app.get('/', (req, res) => res.sendFile('home.html', { root: __dirname }))
 
-app.post('/poll', (req, res) => {
+// Fetch messages from MongoDB
+app.post('/poll', async (req, res) => {
+  const db = await database()
   const id = req.body.id
-  if (typeof messages[id] === 'undefined') {
+  const messages = await db.collection('messages').find().toArray()
+
+  if (id >= messages.length) {
     pushHeap(waiting, [id, res])
   } else {
     res.json(messages[id])
   }
 })
 
+// Add new message to MongoDB
 app.post('/new', (req, res) => {
   const form = formidable({ multiples: true })
-  form.parse(req, (err, fields, files) => {
-    console.log(err)
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error(err)
+      return res.status(500).json({ error: 'Form parsing error' })
+    }
+
     const user = fields.user[0]
-    const color = fields.color[0]
     const text = fields.text[0]
     const image = files.image ? files.image[0] : undefined
-    if (!user || !color) return res.status(400).json({ error: 'Invalid message format' })
-    if (!text && !image) return res.status(400).json({ error: 'Invalid message format' })
+
+    if (!user || (!text && !image)) {
+      return res.status(400).json({ error: 'Invalid message format' })
+    }
 
     if (image) fs.copyFileSync(image.filepath, path.join('uploads', image.originalFilename))
 
-    messages.push({
+    const db = await database()
+    const newMessage = {
       user,
-      color,
       text,
-      image: image ? image.originalFilename : undefined
-    })
+      image: image ? image.originalFilename : undefined,
+      timestamp: new Date()
+    }
+
+    await db.collection('messages').insertOne(newMessage)
+
+    const messages = await db.collection('messages').find().toArray()
 
     while (waiting.length > 0) {
       const [priority, client] = waiting[0]
@@ -85,8 +101,9 @@ app.post('/new', (req, res) => {
         popHeap(waiting)
       } else break
     }
+
     res.json({ success: true })
   })
 })
 
-app.listen(port, '0.0.0.0', () => console.log(`Server running at http://localhost:${port}`))
+app.listen(port, host, () => console.log(`Server running at http://localhost:${port}`))
