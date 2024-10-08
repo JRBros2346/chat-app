@@ -13,7 +13,6 @@ const waiting = []
 
 app.use('/static', express.static('static'))
 app.use('/', express.static('uploads'))
-app.use(express.json())
 
 app.get('/', (req, res) => res.sendFile('home.html', { root: __dirname }))
 
@@ -73,4 +72,4 @@ app.post('/new', (req, res) => {
   })
 })
 
-app.listen(port, host, () => console.log(`Server running at http://localhost:${port}`))
+app.listen(port, host, () => console.log(`Server running at http://${host}:${port}`))

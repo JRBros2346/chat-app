@@ -47,27 +47,27 @@ async function poll (id) {
 }
 
 // Image preview handling
-const imageInput = document.getElementById('image')
-const imageLabel = document.getElementById('image-label')
-imageInput.addEventListener('change', () => {
-  const imageFile = imageInput.files[0]
+const image = document.getElementById('image')
+const label = document.getElementById('image-label')
+image.addEventListener('change', () => {
+  const imageFile = image.files[0]
 
   if (imageFile) {
     const reader = new FileReader()
     reader.onload = () => {
       const img = document.createElement('img')
       img.src = reader.result
-      imageLabel.innerHTML = '' // Clear existing content
-      imageLabel.appendChild(img)
+      label.innerHTML = '' // Clear existing content
+      label.appendChild(img)
 
-      const clearButton = document.createElement('button')
-      clearButton.id = 'clear-image'
-      clearButton.textContent = 'Clear Image'
-      clearButton.addEventListener('click', () => {
-        imageInput.value = '' // Clear file input
-        imageLabel.innerHTML = 'Upload Image' // Reset label content
+      const clear = document.createElement('button')
+      clear.id = 'clear'
+      clear.textContent = 'Clear Image'
+      clear.addEventListener('click', () => {
+        image.value = '' // Clear file input
+        label.innerHTML = 'Upload Image' // Reset label content
       })
-      imageLabel.appendChild(clearButton)
+      label.appendChild(clear)
     }
     reader.readAsDataURL(imageFile)
   }
@@ -97,7 +97,7 @@ document.getElementById('message').addEventListener('submit', async e => {
   // Reset form fields after submission
   document.getElementById('text').value = ''
   document.getElementById('image').value = ''
-  imageLabel.innerHTML = 'Upload Image' // Reset image label
+  label.innerHTML = 'Upload Image' // Reset image label
 })
 
 if (!localStorage.getItem('user')) localStorage.setItem('user', prompt('Username: '))

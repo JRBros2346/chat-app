@@ -23,7 +23,7 @@ body {
 }
 
 /* Scrollable messages container */
-#messages-container {
+#container {
   flex-grow: 1;
   overflow-y: auto;
   background-color: var(--bg-color);
