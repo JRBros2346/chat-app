@@ -1,4 +1,38 @@
+async function appendMessage (message, id) {
+  const tr = document.createElement('tr')
+  tr.id = `msg${id}`
+  const th = document.createElement('th')
+  th.innerText = message.user
+  tr.appendChild(th)
+  const td = document.createElement('td')
+
+  if (message.text) {
+    const p = document.createElement('p')
+    p.innerText = message.text
+    td.appendChild(p)
+  }
+  // Check if the message contains an image URL
+  if (message.image) {
+    const img = document.createElement('img')
+    img.src = message.image
+    img.alt = message.text
+    td.appendChild(img)
+  }
+  tr.appendChild(td)
+  messages.appendChild(tr)
+
+  // Ensure the messages scroll to the bottom when new content is added
+  document.getElementById('messages-container').scrollTop = document.getElementById('messages-container').scrollHeight
+  console.log(`${message.user}: ${message.text}`)
+}
+
 async function poll (id) {
+  const message = localStorage.getItem(`msg${id}`)
+  if (message) {
+    appendMessage(JSON.parse(message), id)
+    return
+  }
+
   const response = await fetch('/poll', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -7,32 +41,8 @@ async function poll (id) {
 
   if (response.ok) {
     const message = await response.json()
-    const tr = document.createElement('tr')
-    tr.id = `msg${id}`
-    const th = document.createElement('th')
-    th.innerText = message.user
-    tr.appendChild(th)
-    const td = document.createElement('td')
-
-    if (message.text) {
-      const p = document.createElement('p')
-      p.innerText = message.text
-      td.appendChild(p)
-    }
-    // Check if the message contains an image URL
-    if (message.image) {
-      const img = document.createElement('img')
-      img.src = message.image
-      img.alt = message.text
-      td.appendChild(img)
-    }
-    tr.appendChild(td)
-    messages.appendChild(tr)
-
-    // Ensure the messages scroll to the bottom when new content is added
-    document.getElementById('messages-container').scrollTop = document.getElementById('messages-container').scrollHeight
-
-    console.log(`${message.user}: ${message.text}`)
+    appendMessage(message, id)
+    localStorage.setItem(`msg${id}`, JSON.stringify(message))
   }
 }
 
