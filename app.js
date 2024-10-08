@@ -4,15 +4,55 @@ const fs = require('fs')
 const path = require('path')
 const database = require('./db')
 const { pushHeap, popHeap } = require('./heap')
+const { Filter } = require('glin-profanity')
 
 const app = express()
 const port = 3333
 const host = '0.0.0.0'
+const filter = new Filter({
+  languages: ['english', 'hindi', 'japanese', 'french'],
+  replaceWith: '***',
+  customWords: [
+    'punda',
+    'thevidiya',
+    'oom',
+    'kevalamana',
+    'saniyan',
+    'sombu',
+    'pocha',
+    'mokkai',
+    'moodi',
+    'soothu',
+    'mayiru',
+    'soru',
+    'naye',
+    'sattaiya',
+    'pombalai',
+    'kosu',
+    'vaaya',
+    'tholvi',
+    'madaiyan',
+    'payal',
+    'nayandi',
+    'panni',
+    'pannada',
+    'pulle',
+    'thiruttu',
+    'kedi',
+    'kasu',
+    'kaatu',
+    'vaaya suttudu',
+    'sirichi',
+    'kalla',
+    'thuniya'
+  ]
+})
 
 const waiting = []
 
 app.use('/static', express.static('static'))
 app.use('/', express.static('uploads'))
+app.use(express.json())
 
 app.get('/', (req, res) => res.sendFile('home.html', { root: __dirname }))
 
@@ -21,10 +61,11 @@ app.post('/poll', async (req, res) => {
   const db = await database()
   const id = req.body.id
   const messages = await db.collection('messages').find().toArray()
-
-  if (id >= messages.length) {
-    pushHeap(waiting, [id, res])
-  } else {
+  if (id >= messages.length) pushHeap(waiting, [id, res])
+  else {
+    const message = messages[id]
+    message.text = filter.checkProfanity(message.text).processedText
+    message.user = filter.checkProfanity(message.user).processedText
     res.json(messages[id])
   }
 })

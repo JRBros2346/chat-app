@@ -20,35 +20,33 @@ async function appendMessage (message, id) {
   }
   tr.appendChild(td)
   messages.appendChild(tr)
-
-  // Ensure the messages scroll to the bottom when new content is added
-  document.getElementById('messages-container').scrollTop = document.getElementById('messages-container').scrollHeight
-  console.log(`${message.user}: ${message.text}`)
 }
 
 async function poll (id) {
-  const message = localStorage.getItem(`msg${id}`)
-  if (message) {
-    appendMessage(JSON.parse(message), id)
-    return
+  let message = JSON.parse(localStorage.getItem(`msg${id}`))
+  if (message) await appendMessage(message, id)
+  else {
+    const response = await fetch('/poll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    })
+
+    if (response.ok) {
+      message = await response.json()
+      await appendMessage(message, id)
+      localStorage.setItem(`msg${id}`, JSON.stringify(message))
+    }
   }
 
-  const response = await fetch('/poll', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id })
-  })
-
-  if (response.ok) {
-    const message = await response.json()
-    appendMessage(message, id)
-    localStorage.setItem(`msg${id}`, JSON.stringify(message))
-  }
+  // Ensure the messages scroll to the bottom when new content is added
+  document.getElementById('container').scrollTop = document.getElementById('container').scrollHeight
+  console.log(`${message.user}: ${message.text}`)
 }
 
 // Image preview handling
 const image = document.getElementById('image')
-const label = document.getElementById('image-label')
+const label = document.getElementById('label')
 image.addEventListener('change', () => {
   const imageFile = image.files[0]
 
@@ -100,7 +98,11 @@ document.getElementById('message').addEventListener('submit', async e => {
   label.innerHTML = 'Upload Image' // Reset image label
 })
 
-if (!localStorage.getItem('user')) localStorage.setItem('user', prompt('Username: '))
+if (!localStorage.getItem('user')) {
+  let name
+  while (!name) name = prompt('Username: ')
+  localStorage.setItem('user', name)
+}
 
 async function run () {
   let i = 0

@@ -89,7 +89,7 @@ form input[type='text']::placeholder {
 }
 
 /* Label and Image Upload */
-#image-label {
+#label {
   background-color: var(--button-bg-color);
   color: var(--button-text-color);
   padding: 0.5em;
@@ -115,7 +115,7 @@ form input[type='submit'] {
   cursor: pointer;
 }
 
-#clear-image {
+#clear {
   background-color: var(--button-bg-color);
   color: var(--button-text-color);
   border: none;
@@ -125,6 +125,6 @@ form input[type='submit'] {
   cursor: pointer;
 }
 
-#clear-image:hover {
+#clear:hover {
   background-color: var(--border-color);
 }
